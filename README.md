@@ -1,18 +1,20 @@
-# Explora Mundo — Consulta de Países
+# Explora Mundo — Parte 2
 
-Trabalho de Fundamentos ao Desenvolvimento Web.
+Projeto de Fundamentos ao Desenvolvimento Web.
 
-## Como executar
-Abra `index.html` no navegador ou use a extensão Live Server do VS Code. A consulta exige internet.
+## Configuração obrigatória
 
-## Tecnologias
-HTML, CSS, Bootstrap 5.3 para o layout e JavaScript puro com fetch.
-Visual adaptado dos exemplos ViaCEP fornecidos.
+A matrícula `404168` já está configurada em `script.js`.
 
-## Consultas da API
-- `GET https://countries.dev/countries?fields=name,capital,region,population,flags,alpha3Code` — lista completa, sem filtros.
-- `GET https://countries.dev/name/{nome}` — pesquisa por nome.
-- `GET https://countries.dev/region/{regiao}` — filtro por região.
-- `GET https://countries.dev/alpha/{codigo}` — detalhes de um único país.
+## Funcionalidades
 
-O JavaScript de integração foi mantido da versão anterior, que já foi testada pelo aluno.
+- Mantém as quatro consultas da API countries.dev.
+- Após cada consulta bem-sucedida, chama a API piway para gravar o log.
+- O botão **Ver histórico de logs** mostra os registros da matrícula.
+- Cada registro tem um botão de exclusão.
+
+## Atenção
+
+Não foi possível verificar a estrutura JSON real do retorno de logs da API da professora neste ambiente. Foram previstas chaves comuns (`idlog`, `id`, `api`, `metodo`, `resultado`). Se a tabela aparecer vazia apesar de haver logs, será necessário ajustar os nomes dos campos observando a resposta no navegador.
+
+Abra `index.html` com Live Server e publique os quatro arquivos na raiz do repositório.

@@ -2,6 +2,136 @@
 const API = 'https://countries.dev';
 const CAMPOS = 'name,capital,region,population,flags,alpha3Code';
 
+// Matrícula do aluno para identificação dos logs.
+const MATRICULA = '404168';
+const API_LOGS = 'https://www.piway.com.br/unoesc/api';
+
+function matriculaConfigurada() {
+  return /^\d+$/.test(MATRICULA);
+}
+
+// Registra uma consulta bem-sucedida na API da professora.
+async function registrarLog(caminho, dados) {
+  let metodo = 'ConsultarPaises';
+
+  if (caminho.startsWith('/name/')) {
+    metodo = 'BuscarPais';
+  } else if (caminho.startsWith('/region/')) {
+    metodo = 'FiltrarRegiao';
+  } else if (caminho.startsWith('/alpha/')) {
+    metodo = 'DetalhesPais';
+  }
+
+  let resultado = '';
+
+  if (caminho.startsWith('/name/')) {
+    const pesquisa = decodeURIComponent(caminho.split('/')[2]);
+
+    resultado = 'Pesquisa: ' + pesquisa +
+      ' | ' + dados.length + ' resultado(s)';
+
+  } else if (caminho.startsWith('/region/')) {
+    const regiao = decodeURIComponent(caminho.split('/')[2]);
+
+    resultado = 'Regiao: ' + regiao +
+      ' | ' + dados.length + ' resultado(s)';
+
+  } else if (caminho.startsWith('/alpha/')) {
+    resultado = 'Pais: ' + nomeDoPais(dados);
+
+  } else {
+    resultado = dados.length + ' paises carregados';
+  }
+  const url = API_LOGS + '/inserir/log/' +
+    MATRICULA + '/Countries/' +
+    metodo + '/' +
+    encodeURIComponent(resultado);
+
+  console.log('Registrando log:', url);
+
+  try {
+    const resposta = await fetch(url);
+    console.log('Status do log:', resposta.status);
+  } catch (erro) {
+    console.error('Erro ao registrar log:', erro);
+  }
+}
+
+function lerIdentificador(log) {
+  return log.idlog ?? log.idLog ?? log.IDLOG ?? log.id_log ?? log.id ?? log.ID ?? null;
+}
+
+function adicionarCelula(linha, valor) {
+  const celula = document.createElement('td');
+  celula.textContent = valor == null ? '-' : String(valor);
+  linha.appendChild(celula);
+  return celula;
+}
+
+// Consulta e mostra o histórico de logs.
+async function exibirLogs() {
+  const corpo = document.getElementById('corpo-logs');
+  document.getElementById('modal-logs').classList.remove('escondido');
+  corpo.replaceChildren();
+  document.getElementById('estado-logs').textContent = 'Carregando logs...';
+  if (!matriculaConfigurada()) {
+    document.getElementById('estado-logs').textContent = 'Preencha sua matrícula em script.js.';
+    return;
+  }
+  try {
+    const resposta = await fetch(API_LOGS + '/logs/' + encodeURIComponent(MATRICULA));
+    if (!resposta.ok) throw new Error('HTTP ' + resposta.status);
+    const dados = await resposta.json();
+    const logs = Array.isArray(dados) ? dados :
+      (Array.isArray(dados.logs) ? dados.logs : Array.isArray(dados.data) ? dados.data : []);
+    document.getElementById('estado-logs').textContent = logs.length
+      ? logs.length + ' registro(s) encontrados.' : 'Nenhum log registrado.';
+    logs.forEach(log => {
+      const linha = document.createElement('tr');
+      const id = lerIdentificador(log);
+      adicionarCelula(linha, id);
+      adicionarCelula(linha, log.api ?? log.API ?? log.nm_api ?? '');
+      adicionarCelula(linha, log.metodo ?? log.METODO ?? log.nm_metodo ?? '');
+      adicionarCelula(linha, log.resultado ?? log.RESULTADO ?? log.ds_resultado ?? '');
+      const celula = document.createElement('td');
+      if (id !== null) {
+        const botao = document.createElement('button');
+        botao.type = 'button';
+        botao.className = 'btn btn-sm btn-outline-danger';
+        botao.textContent = 'Excluir';
+        botao.addEventListener('click', () => excluirLog(id));
+        celula.appendChild(botao);
+      }
+      linha.appendChild(celula);
+      corpo.appendChild(linha);
+    });
+  } catch (erro) {
+    console.error('Falha ao consultar logs:', erro);
+    document.getElementById('estado-logs').textContent = 'Não foi possível consultar os logs.';
+  }
+}
+
+// Exclui apenas o registro selecionado e atualiza o histórico.
+async function excluirLog(id) {
+  if (!confirm('Deseja excluir o log ' + id + '?')) return;
+  try {
+    const url = API_LOGS + '/excluir/log/' + encodeURIComponent(id) +
+      '/aluno/' + encodeURIComponent(MATRICULA);
+    const resposta = await fetch(url);
+    if (!resposta.ok) throw new Error('HTTP ' + resposta.status);
+    await exibirLogs();
+  } catch (erro) {
+    console.error('Falha ao excluir log:', erro);
+    alert('Não foi possível excluir o log.');
+  }
+}
+
+document.getElementById('abrir-logs').addEventListener('click', exibirLogs);
+document.getElementById('fechar-logs').addEventListener('click', () => {
+  document.getElementById('modal-logs').classList.add('escondido');
+});
+
+
 const lista = document.getElementById('lista-paises');
 const mensagem = document.getElementById('mensagem');
 const quantidade = document.getElementById('quantidade');
@@ -16,7 +146,10 @@ async function consultarAPI(caminho) {
   if (!resposta.ok) {
     throw new Error('Erro HTTP ' + resposta.status);
   }
-  return await resposta.json();
+  const dados = await resposta.json();
+  // Não bloqueia a apresentação dos países se o registro de log falhar.
+  registrarLog(caminho, dados);
+  return dados;
 }
 
 function nomeDoPais(pais) {

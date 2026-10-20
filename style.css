@@ -43,3 +43,6 @@ footer { border-top: 1px solid #d0ded5; color: #607568; font-size: .85rem; paddi
 footer a { color: var(--accent); }
 @media(max-width:850px) { .grade-paises { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media(max-width:575px) { .page-header { padding-top: 1.3rem; } .grade-paises { grid-template-columns: 1fr; } .bandeira { height: 170px; } }
+
+.janela-logs { max-width: 960px; }
+.janela-logs td { overflow-wrap: anywhere; font-size: .85rem; }
